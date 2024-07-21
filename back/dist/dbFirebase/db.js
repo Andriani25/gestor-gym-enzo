@@ -53,7 +53,7 @@ const updateUser = async ({ name, monthsPayed, cellPhone, totalDebt, email }) =>
     const userData = {
         name,
         monthsPayed,
-        cellPhone,
+        cellPhone: cellPhone ? cellPhone : 0,
         totalDebt: totalDebt ? totalDebt : 0,
         email
     };

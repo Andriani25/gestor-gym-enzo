@@ -1,0 +1,8 @@
+.layout {
+  justify-content: center;
+  align-items: center;
+    background-image: url('../assets/w03193-small.jpg'); /* Asegúrate de que la ruta sea correcta */
+    background-size: cover;
+    background-position: center;
+    height: 100vh; /* Esto asegura que la imagen de fondo cubra toda la altura de la ventana */
+  }

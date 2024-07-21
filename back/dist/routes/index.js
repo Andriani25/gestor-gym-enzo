@@ -7,7 +7,7 @@ const express_1 = __importDefault(require("express"));
 const UserRoutes_1 = __importDefault(require("./UserRoutes"));
 const router = express_1.default.Router();
 router.get('/', (req, res) => {
-    res.send('Hello World!');
+    res.send('holu');
 });
 router.use(UserRoutes_1.default);
 exports.default = router;

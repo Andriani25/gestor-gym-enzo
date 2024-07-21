@@ -5,7 +5,29 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 const express_1 = __importDefault(require("express"));
 const db_1 = require("../dbFirebase/db");
+const dotenv_1 = __importDefault(require("dotenv"));
+const jsonwebtoken_1 = __importDefault(require("jsonwebtoken"));
 const router = express_1.default.Router();
+dotenv_1.default.config();
+router.post('/admin', (req, res) => {
+    const { user, password } = req.body;
+    if (user === 'gym_gestor' && password === '123') {
+        const token = jsonwebtoken_1.default.sign({
+            user,
+            password
+        }, 'secret', {
+            expiresIn: '1h'
+        });
+        res
+            .cookie('acces_token', token, {
+            httpOnly: true,
+            sameSite: 'lax',
+            secure: process.env.NODE_ENV === 'production',
+            maxAge: 1000 * 60 * 60 // 1hs
+        })
+            .send({ user, token });
+    }
+});
 router.get('/getUsers', async (req, res) => {
     try {
         const allUsers = await (0, db_1.getAllUsers)();
