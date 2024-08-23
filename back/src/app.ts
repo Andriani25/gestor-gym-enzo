@@ -1,10 +1,11 @@
 import dotenv from "dotenv"
 import morgan from "morgan"
 import cors from "cors"
-import express, { Express } from "express"
+import express, { Express, Request, Response, NextFunction } from "express"
 import { initializeFirebaseApp } from "./dbFirebase/db"
 import index from "./routes/index"
 import cookieParser from 'cookie-parser'
+import jwt, {JwtPayload as DefaultJwtPayload} from 'jsonwebtoken'
 
 dotenv.config()
 
@@ -26,6 +27,39 @@ app.use(cors({
 app.use(morgan('dev'))
 app.use(express.json())
 app.use(cookieParser())
+
+interface JwtPayload extends DefaultJwtPayload {
+    user: string
+    }
+
+
+app.use((req: Request, res: Response, next: NextFunction) => {
+
+    const token = req.cookies.acces_token
+ 
+    req.session = {user: null} 
+ 
+    try{
+ 
+      const data = jwt.verify(token, 'secret') as JwtPayload
+ 
+      if(data){
+      req.session.user = data.user
+      console.log('Token access', req.session.user)
+      }
+ 
+ 
+    }catch(error){
+ 
+ 
+      console.error('No token')
+ 
+ 
+    }
+   
+    next()
+ 
+  })
 
 // routes
 

@@ -10,6 +10,7 @@ const express_1 = __importDefault(require("express"));
 const db_1 = require("./dbFirebase/db");
 const index_1 = __importDefault(require("./routes/index"));
 const cookie_parser_1 = __importDefault(require("cookie-parser"));
+const jsonwebtoken_1 = __importDefault(require("jsonwebtoken"));
 dotenv_1.default.config();
 const app = (0, express_1.default)();
 // Express & Firebase settings
@@ -23,6 +24,21 @@ app.use((0, cors_1.default)({
 app.use((0, morgan_1.default)('dev'));
 app.use(express_1.default.json());
 app.use((0, cookie_parser_1.default)());
+app.use((req, res, next) => {
+    const token = req.cookies.acces_token;
+    req.session = { user: null };
+    try {
+        const data = jsonwebtoken_1.default.verify(token, 'secret');
+        if (data) {
+            req.session.user = data.user;
+            console.log('Token access', req.session.user);
+        }
+    }
+    catch (error) {
+        console.error('No token');
+    }
+    next();
+});
 // routes
 app.use('/', index_1.default);
 exports.default = app;

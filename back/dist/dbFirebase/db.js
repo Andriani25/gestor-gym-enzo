@@ -19,6 +19,7 @@ const firebaseConfig = {
     messagingSenderId: MESSAGING_SENDER_ID,
     appId: APP_ID
 };
+// Initialize Firebase
 let app;
 let firestoreDB;
 const initializeFirebaseApp = () => {
@@ -37,25 +38,30 @@ exports.getFirebaseApp = getFirebaseApp;
 const getAllUsers = async () => {
     try {
         const collectionData = await (0, firestore_1.getDocs)((0, firestore_1.collection)(firestoreDB, "Users"));
+        console.log(collectionData, 'COLLECTION DATA DE FIREBASEDB');
         let users = [];
-        const allUsers = collectionData.forEach((doc) => {
+        collectionData.forEach((doc) => {
             // doc.data() is never undefined for query doc snapshots
             users.push(doc.data());
         });
+        console.log(users, 'USERS DESPUES DEL COLECTIN DATA');
         return users;
     }
     catch (error) {
-        console.log("Error at getting all users!");
+        console.log("Error at getting all users!", error);
     }
 };
 exports.getAllUsers = getAllUsers;
-const updateUser = async ({ name, monthsPayed, cellPhone, totalDebt, email }) => {
+const updateUser = async ({ name, payDate, cellPhone, expireDate, email }) => {
     const userData = {
-        name,
-        monthsPayed,
-        cellPhone: cellPhone ? cellPhone : 0,
-        totalDebt: totalDebt ? totalDebt : 0,
-        email
+        email,
+        data: {
+            name,
+            email,
+            payDate,
+            cellPhone,
+            expireDate
+        }
     };
     console.log(userData, "USER DATA DB");
     try {

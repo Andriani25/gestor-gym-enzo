@@ -8,6 +8,20 @@ dotenv.config()
 
 const { FIREBASE_KEY, AUTH_DOMAIN, PROJECT_ID, STORAGE_BUCKET, MESSAGING_SENDER_ID, APP_ID } = process.env
 
+export interface Data {
+  name: string,
+  payDate: Date,
+  cellPhone? : number,
+  expireDate: Date,
+  email: string
+}
+export interface userData {
+  email: string,
+  data: Data
+}
+
+
+
 // Your web app's Firebase configuration
 
 const firebaseConfig = {
@@ -20,14 +34,6 @@ const firebaseConfig = {
 };
 
 // Initialize Firebase
-
-interface userData {
-    name: string,
-    monthsPayed?: [],
-    cellPhone? : number,
-    totalDebt?: number,
-    email: string
-}
 
 let app: FirebaseApp;
 let firestoreDB: Firestore;
@@ -51,9 +57,11 @@ export const getAllUsers = async (  ) => {
 
   const collectionData = await getDocs(collection(firestoreDB, "Users"))
 
+  console.log(collectionData, 'COLLECTION DATA DE FIREBASEDB')
+
   let users: DocumentData = []
 
-  const allUsers = collectionData.forEach((doc) => {
+  collectionData.forEach((doc) => {
     // doc.data() is never undefined for query doc snapshots
     
 
@@ -61,26 +69,32 @@ export const getAllUsers = async (  ) => {
 
   })
   
+  console.log(users, 'USERS DESPUES DEL COLECTIN DATA')
+
   return users
 
   }catch(error){
     
-    console.log("Error at getting all users!")
+    console.log("Error at getting all users!", error)
+
 
   }
 
 }
 
 
-export const updateUser = async ( { name, monthsPayed, cellPhone, totalDebt, email }: userData ) => {
+export const updateUser = async ( { name, payDate, cellPhone, expireDate, email }: Data ) => {
 
 
  const userData: userData = {
-    name,
-    monthsPayed,
-    cellPhone: cellPhone ? cellPhone : 0 ,
-    totalDebt: totalDebt ? totalDebt : 0 ,
-    email
+    email,
+    data: {
+      name,
+      email,
+      payDate,
+      cellPhone,
+      expireDate
+    }
  }
 
  console.log(userData, "USER DATA DB")

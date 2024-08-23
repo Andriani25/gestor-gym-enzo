@@ -1,33 +1,59 @@
-import express, { Router, Request, Response } from "express";
+import express, { Router, Request, Response, NextFunction } from "express";
 import { getAllUsers, updateUser, deleteUser } from "../dbFirebase/db";
 import dotenv from 'dotenv'
-import jwt from 'jsonwebtoken'
-
-
+import jwt, {JwtPayload as DefaultJwtPayload} from 'jsonwebtoken'
 
 const router: Router = express.Router()
 dotenv.config()
 
-router.post('/admin', (req: Request, res: Response) => {
+router.post('/login', (req: Request, res: Response) => {
 
-  const {user, password} = req.body
+    const {user, password} = req.body
+  
+    if(user === 'gym_gestor' && password === '123'){
+    const token = jwt.sign({
+        user
+    }, 'secret', {
+      expiresIn: '4h'
+    })
+    res
+    .cookie('acces_token', token, {
+      httpOnly: true,
+      sameSite: 'lax',
+      secure: process.env.NODE_ENV === 'production',
+      maxAge: 1000 * 60 * 60 * 4 // 1hs
+    })
+    .send({user, token})
+  }
 
-  if(user === 'gym_gestor' && password === '123'){
-  const token = jwt.sign({
-      user,
-      password
-  }, 'secret', {
-    expiresIn: '1h'
-  })
-  res
-  .cookie('acces_token', token, {
-    httpOnly: true,
-    sameSite: 'lax',
-    secure: process.env.NODE_ENV === 'production',
-    maxAge: 1000 * 60 * 60 // 1hs
-  })
-  .send({user, token})
+  res.status(401).send('Username or password incorrect')
+
 }
+)
+
+router.get('/logout', (req: Request, res: Response) => {
+  res.status(200).cookie('acces_token', '', {
+    maxAge: 1
+  }).send("Log Out")
+})
+
+router.get('/protected', (req: Request, res: Response) => {
+
+  const {user} = req.session
+  
+  try{
+
+    if(user){
+      res.status(203).send(user)
+    }else{
+      res.status(401).send('Not authenticated')
+    }
+
+  }catch(error){
+    res.status(500).send('Error at user access')
+    
+  }
+
 })
 
 router.get('/getUsers', async (req: Request, res: Response) => {
@@ -36,9 +62,13 @@ try{
 
   const allUsers = await getAllUsers()
 
-  console.log(allUsers, 'ALL USERS USER ROUTES')
+  if(allUsers){
+    res.json(allUsers)
+  }else{
+    res.status(400).send('Error at getUsers')
+  }
 
-  res.json(allUsers)
+
 
 }catch(error){
   res.status(400).send("Users not finded")
@@ -48,57 +78,71 @@ try{
 
 
 router.post('/updateUser', async (req: Request, res: Response) => {
+
+  const { user } = req.session
+
+  if(user){
+
+    try{
   
-  try{
+      const userData = req.body
+  
+      console.log(req.body, 'UPDATE USER REQ.BODY')
+  
+      if(userData){
 
-    const userData = req.body
+        try{
 
-    console.log(req.body, 'USER DATA REQ.BODY')
+          await updateUser(userData)
 
-    if(userData){
+          res.status(200).send('User updated')
 
-      try{
-
-        await updateUser(userData)
-
-      }catch(error){
-
+        }catch(error){
+          console.error('Error at updateUser DB function')
+        }
+      }else{
         res.status(400).send("Error at upload user!")
-
       }
-
-
+      
+    }catch(error){
+  
+      console.error("User data not recieved")
+  
+      res.status(400).send("User data not recieved")
+  
     }
-    
-    res.send('Data recieved')
-
-  }catch(error){
-
-    console.log("User data not recieved", error)
-
-    res.status(400).send("User data not recieved")
-
+  }else{
+    res.status(401).send('Unauthorized for UserRoutes/updateUser')
   }
+  
 
   })
 
-  router.delete("/deleteUser", (req: Request, res: Response) => {
+  router.delete("/deleteUser", async (req: Request, res: Response) => {
 
-    const email = req.body.email
+    const {user} = req.session
 
-     if(email){
-       try{
+    if(user){
 
-       deleteUser(email)
-
-       res.send('User deleted succesfully')
-
-       }catch(error){
-
-         res.send("Error at delete user process!")
-
+      const email = req.body.email
+  
+       if(email){
+         try{
+  
+         await deleteUser(email)
+  
+         res.send('User deleted succesfully')
+  
+         }catch(error){
+  
+           res.send("Error at delete user process!")
+  
+         }
        }
-     }
+    }else{
+      res.status(401).send("Unauthorized for userRoutes/deleteUser !")
+    }
+
 
 
   } )

@@ -1,8 +1,30 @@
 .layout {
-  justify-content: center;
-  align-items: center;
     background-image: url('../assets/w03193-small.jpg'); /* Asegúrate de que la ruta sea correcta */
     background-size: cover;
     background-position: center;
-    height: 100vh; /* Esto asegura que la imagen de fondo cubra toda la altura de la ventana */
+  }
+
+
+  .button-menu {
+    position: absolute;
+  }
+
+  .button-menu.active {
+    left: -250px;
+  }
+
+  .side-menu {
+ 
+    position: fixed;
+    top: 0;
+    left: -250px; /* Inicia fuera de la pantalla */
+    width: 200px;
+    height: 100%;
+    color: white;
+    transition: left 0.3s ease;
+    z-index: 1000; /* Asegura que el menú se superponga a otros elementos */
+  }
+  
+  .side-menu.active {
+    left: 0; /* Mueve el menú dentro de la vista */
   }
