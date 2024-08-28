@@ -9,6 +9,21 @@ import menuIcon from "../assets/icons8-menu.svg";
 import loadingGif from "../assets/Magnify@1x-1.8s-200px-200px.gif";
 import "../styles/index.css";
 
+// Types
+
+export interface Data {
+  name: string;
+  payDate: Date;
+  cellPhone?: number;
+  expireDate: Date;
+  email: string;
+}
+
+export interface userData {
+  email: string;
+  data: Data;
+}
+
 const AdminPanel: FC = () => {
   const navigate = useNavigate();
 
@@ -16,8 +31,6 @@ const AdminPanel: FC = () => {
   const updateAllUsers = useStore((state) => state.updateUsers);
 
   const [menuActive, setMenuActive] = useState<boolean>(false);
-  const [inputValue, setInputValue] = useState<string>("");
-  const [storeFiltered, setStoreFiltered] = useState([]);
 
   useEffect(() => {
     const authAdmin = async () => {
@@ -61,12 +74,6 @@ const AdminPanel: FC = () => {
     }
   };
 
-  const handleGoAddUser = () => {
-    navigate("/addUser");
-  };
-
-  console.log("ESTADO DE ZUSTAND", allUsers);
-
   return (
     <div className="container-fluid layout ">
       <div
@@ -77,7 +84,7 @@ const AdminPanel: FC = () => {
         {/* Contenido del menú lateral */}
         <ul className="d-flex flex-column">
           <button
-            onClick={handleGoAddUser}
+            onClick={() => navigate("/addUser")}
             className="btn btn-md btn-success rounded-2 my-4 text-white fw-bold outline"
           >
             Agregar Usuario
@@ -100,7 +107,7 @@ const AdminPanel: FC = () => {
       <div className="row justify-content-center align-items-center ">
         <div className="z-3 sticky-top">
           <button
-            className={`btn btn-dark mt-4 btn-sm rounded-2 button-menu ${
+            className={`btn btn-secondary mt-4 btn-sm rounded-2 button-menu ${
               menuActive ? "active" : ""
             }`}
             onClick={() => setMenuActive(!menuActive)}
@@ -112,7 +119,7 @@ const AdminPanel: FC = () => {
           <div className="row justify-content-center align-items-center min-vh-100">
             {allUsers.length ? (
               allUsers.map((userState, index) => (
-                <div key={index} className="col-12 col-sm-6 ">
+                <div key={index} className="col-12 col-sm-6 col-lg-4 my-4 ">
                   <div className="row justify-content-center align-items-center bg-black bg-gradient rounded-4 mx-2 my-1 p-4 ">
                     <ul className="text-center fw-bold text-white">
                       {userState.data.name}
@@ -120,7 +127,14 @@ const AdminPanel: FC = () => {
                     <ul className="text-center fw-bold text-white">
                       {userState.email}
                     </ul>
-                    <button className="btn btn-secondary fw-bold w-50 w-md-25">
+                    <button
+                      className="btn btn-secondary fw-bold w-50 w-md-25"
+                      onClick={() =>
+                        navigate("/modifyUser", {
+                          state: userState,
+                        })
+                      }
+                    >
                       Modificar
                     </button>
                   </div>

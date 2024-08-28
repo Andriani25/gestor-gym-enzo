@@ -1,18 +1,19 @@
 import { create } from 'zustand'
 
-export interface userData {
+export interface userStoreData {
     email: string,
     data: {
-        name: string,
-        monthsPayed?: string[],
-        cellPhone? : number,
-        totalDebt?: number,
+        name: string;
+        payDate: Date;
+        cellPhone?: number;
+        expireDate: Date;
+        email: string;
     }
 }
 
 export interface userStore {
-    allUsers: userData[],
-    updateUsers: (newUsers: userData[]) => void
+    allUsers: userStoreData[],
+    updateUsers: (newUsers: userStoreData[]) => void
 }
 
 
@@ -20,7 +21,7 @@ export interface userStore {
 const useStore = create<userStore>()((set) => ({
  allUsers: [],
 
- updateUsers: (newUsers: userData[]) => set({allUsers: newUsers})
+ updateUsers: (newUsers: userStoreData[]) => set({allUsers: newUsers})
 
 }))
 

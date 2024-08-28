@@ -1,5 +1,5 @@
 import { createBrowserRouter } from "react-router-dom";
-import { AdminPanel, Login, Error, AddUser } from "../views";
+import { AdminPanel, Login, Error, AddUser, ModifyUser } from "../views";
 
 const router = createBrowserRouter([
   {
@@ -17,6 +17,10 @@ const router = createBrowserRouter([
   {
     path: "/addUser",
     element: <AddUser />,
+  },
+  {
+    path: "modifyUser",
+    element: <ModifyUser />,
   },
 ]);
 
