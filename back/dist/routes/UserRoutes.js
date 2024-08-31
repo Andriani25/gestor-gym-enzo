@@ -11,7 +11,7 @@ const router = express_1.default.Router();
 dotenv_1.default.config();
 router.post('/login', (req, res) => {
     const { user, password } = req.body;
-    if (user === 'gym_gestor' && password === '123') {
+    if (user === process.env.GESTOR_USER && password === process.env.PASSWORD) {
         const token = jsonwebtoken_1.default.sign({
             user
         }, 'secret', {

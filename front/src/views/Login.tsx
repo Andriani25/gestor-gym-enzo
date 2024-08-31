@@ -35,6 +35,8 @@ const Login: FC = () => {
         }
       );
 
+      console.log(response);
+
       if (response.data.token) {
         navigate("/admin");
       } else {
@@ -46,15 +48,13 @@ const Login: FC = () => {
     }
   };
 
-  console.log(logged);
   useEffect(() => {
     const auth = async () => {
       try {
         const response = await axios.get("http://localhost:3000/protected", {
           withCredentials: true,
         });
-        console.log("RESPONSE FRONT", response);
-        if (response.data === "gym_gestor") {
+        if (response.data) {
           setLogged(true);
         } else {
           setLogged(false);

@@ -10,7 +10,7 @@ router.post('/login', (req: Request, res: Response) => {
 
     const {user, password} = req.body
   
-    if(user === 'gym_gestor' && password === '123'){
+    if(user === process.env.GESTOR_USER && password === process.env.PASSWORD){
     const token = jwt.sign({
         user
     }, 'secret', {
