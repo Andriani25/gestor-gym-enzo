@@ -86,7 +86,7 @@ const ModifyUser: FC = () => {
       const response = await axios.get("http://localhost:3000/protected", {
         withCredentials: true,
       });
-      if (response.data === "gym_gestor") {
+      if (response.data) {
         console.log("Authorized");
       } else {
         navigate("/error");
