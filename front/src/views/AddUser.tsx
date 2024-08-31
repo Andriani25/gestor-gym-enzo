@@ -1,6 +1,7 @@
 import { FC, useEffect, useState, ChangeEvent } from "react";
 import { useNavigate } from "react-router";
 import DatePicker from "react-datepicker";
+import { format } from "@formkit/tempo";
 import axios from "axios";
 
 // CSS
@@ -12,9 +13,9 @@ import "react-datepicker/dist/react-datepicker.css";
 
 export interface Data {
   name?: string;
-  payDate: Date | string;
+  payDate: string | Date;
   cellPhone: number;
-  expireDate: Date | string;
+  expireDate: string | Date;
   email: string;
 }
 
@@ -37,14 +38,6 @@ const AddUser: FC = () => {
     email: "",
   });
 
-  const dateFormatter = (d: Date) => {
-    return d.toLocaleDateString("es-ES", {
-      day: "2-digit",
-      month: "2-digit",
-      year: "numeric",
-    });
-  };
-
   const handleChange = (e: ChangeEvent<HTMLInputElement>) => {
     setInputValue({
       ...inputValue,
@@ -53,7 +46,7 @@ const AddUser: FC = () => {
   };
 
   const handleChangePayDate = (date: Date) => {
-    const newPayDate = dateFormatter(date);
+    const newPayDate = format(date, "DD/MM/YYYY", "es");
 
     setPayDateState(date);
 
@@ -64,13 +57,13 @@ const AddUser: FC = () => {
   };
 
   const handleChangeExpireDate = (date: Date) => {
-    const newExpireDate = dateFormatter(date);
+    const newExpireDate = format(date, "DD/MM/YYYY", "es");
 
     setExpireDateState(date);
 
     setInputValue({
       ...inputValue,
-      payDate: newExpireDate,
+      expireDate: newExpireDate,
     });
   };
 
@@ -81,14 +74,6 @@ const AddUser: FC = () => {
       });
       if (response.data === "gym_gestor") {
         console.log("Authorized");
-
-        const getResponse = await axios.get("http://localhost:3000/getUsers", {
-          withCredentials: true,
-        });
-
-        if (getResponse.data) {
-          return null;
-        }
       } else {
         navigate("/error");
       }
@@ -104,7 +89,7 @@ const AddUser: FC = () => {
   const handleCreateUser = async () => {
     try {
       const response = await axios.post(
-        "http://localhost:3000/updateUser",
+        "http://localhost:3000/createUser",
         inputValue,
         {
           withCredentials: true,
@@ -236,8 +221,8 @@ const AddUser: FC = () => {
             />
             <button
               disabled={
-                dateFormatter(expireDateState) ===
-                dateFormatter(payDateState || !inputValue.email.includes("@"))
+                expireDateState === payDateState ||
+                !inputValue.email.includes("@")
               }
               className="btn w-50 btn-secondary text-centered fw-bold"
               onClick={handleCreateUser}

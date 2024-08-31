@@ -2,17 +2,16 @@
 
 import { FirebaseApp, initializeApp } from "firebase/app";
 import dotenv from 'dotenv'
-import { getFirestore, Firestore, doc, collection, setDoc, deleteDoc, getDoc, getDocs, DocumentData } from 'firebase/firestore'
-
+import { getFirestore, Firestore, doc, collection, setDoc, deleteDoc, getDocs, DocumentData } from 'firebase/firestore'
 dotenv.config()
 
 const { FIREBASE_KEY, AUTH_DOMAIN, PROJECT_ID, STORAGE_BUCKET, MESSAGING_SENDER_ID, APP_ID } = process.env
 
 export interface Data {
   name: string,
-  payDate: Date,
+  payDate: string,
   cellPhone? : number,
-  expireDate: Date,
+  expireDate: string,
   email: string
 }
 export interface userData {
@@ -57,8 +56,6 @@ export const getAllUsers = async (  ) => {
 
   const collectionData = await getDocs(collection(firestoreDB, "Users"))
 
-  console.log(collectionData, 'COLLECTION DATA DE FIREBASEDB')
-
   let users: DocumentData = []
 
   collectionData.forEach((doc) => {
@@ -68,8 +65,6 @@ export const getAllUsers = async (  ) => {
     users.push(doc.data())
 
   })
-  
-  console.log(users, 'USERS DESPUES DEL COLECTIN DATA')
 
   return users
 
@@ -83,7 +78,7 @@ export const getAllUsers = async (  ) => {
 }
 
 
-export const updateUser = async ( { name, payDate, cellPhone, expireDate, email }: Data ) => {
+export const createUser = async ( { name, payDate, cellPhone, expireDate, email }: Data ) => {
 
 
  const userData: userData = {
@@ -103,15 +98,44 @@ export const updateUser = async ( { name, payDate, cellPhone, expireDate, email 
     
     const document = doc(firestoreDB, "Users", email )
   
-    let dataUpdated = await setDoc(document, userData)
+   await setDoc(document, userData)
   
-    return dataUpdated
+    return true
 
 
  }catch(error){
   console.log("ERROR AT FILE UPLOAD", error)
  }
 
+
+}
+
+export const updateUser = async ({ name, payDate, cellPhone, expireDate, email }: Data) => {
+
+
+  if(email){
+
+    try{
+      
+    const userToModify = doc(firestoreDB, 'Users', email)
+
+     await setDoc(userToModify, {
+      email,
+      data: {
+        name,
+        payDate,
+        cellPhone,
+        expireDate,
+        email
+      }
+    })
+
+
+    }catch(error){
+      console.error('Error at updateUser firebaseDB')
+    }
+
+  }
 
 }
 

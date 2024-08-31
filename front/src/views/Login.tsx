@@ -13,7 +13,10 @@ const Login: FC = () => {
     user: "",
     password: "",
   });
+
   const [logged, setLogged] = useState<boolean>(false);
+
+  const [errorMessage, setErrorMessage] = useState<boolean>(false);
 
   const handleChange = (e: ChangeEvent<HTMLInputElement>) => {
     setInputsValue({
@@ -23,16 +26,23 @@ const Login: FC = () => {
   };
 
   const handleSubmit = async () => {
-    const response = await axios.post(
-      "http://localhost:3000/login",
-      inputsValue,
-      {
-        withCredentials: true,
-      }
-    );
+    try {
+      const response = await axios.post(
+        "http://localhost:3000/login",
+        inputsValue,
+        {
+          withCredentials: true,
+        }
+      );
 
-    if (response.data.token) {
-      navigate("/admin");
+      if (response.data.token) {
+        navigate("/admin");
+      } else {
+        setErrorMessage(true);
+      }
+    } catch (error) {
+      setErrorMessage(true);
+      console.error("Error al intentar loguearse", error);
     }
   };
 
@@ -88,7 +98,7 @@ const Login: FC = () => {
         </div>
       ) : (
         <div className="container-fluid layout">
-          <div className="row justify-content-center align-items-center min-vh-100">
+          <div className="row justify-content-center align-items-center text-center min-vh-100">
             <div className="row justify-content-center col-8 col-md-6 col-lg-4 bg-black bg-gradient rounded-4 p-4 ">
               <input
                 type="text"
@@ -112,6 +122,9 @@ const Login: FC = () => {
               >
                 Ingresar
               </button>
+              {errorMessage ? (
+                <h6 className="text-danger">Usuario o contraseña incorrecta</h6>
+              ) : null}
             </div>
           </div>
         </div>

@@ -28,39 +28,35 @@ const AdminPanel: FC = () => {
   const navigate = useNavigate();
 
   const allUsers = useStore((state) => state.allUsers);
+  const filteredUsers = useStore((state) => state.filteredUsers);
   const updateAllUsers = useStore((state) => state.updateUsers);
+  const filterUsers = useStore((state) => state.filterUsers);
 
   const [menuActive, setMenuActive] = useState<boolean>(false);
+  const [filterInput, setFilterInput] = useState<string>("");
 
-  useEffect(() => {
-    const authAdmin = async () => {
-      try {
-        const response = await axios.get("http://localhost:3000/protected", {
+  const authAdmin = async () => {
+    try {
+      const response = await axios.get("http://localhost:3000/protected", {
+        withCredentials: true,
+      });
+      if (response.data === "gym_gestor") {
+        console.log("Authorized");
+
+        const getResponse = await axios.get("http://localhost:3000/getUsers", {
           withCredentials: true,
         });
-        if (response.data === "gym_gestor") {
-          console.log("Authorized");
 
-          const getResponse = await axios.get(
-            "http://localhost:3000/getUsers",
-            {
-              withCredentials: true,
-            }
-          );
-
-          if (getResponse.data) {
-            updateAllUsers(getResponse.data);
-          }
-        } else {
-          navigate("/error");
+        if (getResponse.data) {
+          updateAllUsers(getResponse.data);
         }
-      } catch (error) {
+      } else {
         navigate("/error");
       }
-    };
-
-    authAdmin();
-  }, []);
+    } catch (error) {
+      navigate("/error");
+    }
+  };
 
   const handleLogOut = async () => {
     const logOut = await axios.get("http://localhost:3000/logout", {
@@ -74,15 +70,38 @@ const AdminPanel: FC = () => {
     }
   };
 
+  useEffect(() => {
+    authAdmin();
+  }, []);
+
+  useEffect(() => {
+    try {
+      const fUsers = allUsers.filter((user) =>
+        user.data.name.includes(filterInput)
+      );
+
+      if (fUsers) {
+        filterUsers(filteredUsers, fUsers);
+      }
+    } catch (error) {
+      console.error("Error at filterUser");
+    }
+  }, [filterInput]);
+
   return (
     <div className="container-fluid layout ">
       <div
         className={`side-menu ${
           menuActive ? "active" : ""
-        } d-flex bg-black bg-gradient`}
+        } d-flex row bg-black bg-gradient px-4`}
       >
         {/* Contenido del menú lateral */}
-        <ul className="d-flex flex-column">
+        <ul className="d-flex flex-column mt-5">
+          <input
+            className="input-group rounded-4 text-center mt-5 "
+            placeholder="Nombres"
+            onChange={(e) => setFilterInput(e.target.value)}
+          />
           <button
             onClick={() => navigate("/addUser")}
             className="btn btn-md btn-success rounded-2 my-4 text-white fw-bold outline"
@@ -101,7 +120,6 @@ const AdminPanel: FC = () => {
           >
             Cerrar Menú
           </button>
-          {/* Agrega más elementos del menú aquí */}
         </ul>
       </div>
       <div className="row justify-content-center align-items-center ">
@@ -117,7 +135,30 @@ const AdminPanel: FC = () => {
         </div>
         <div className="col-12">
           <div className="row justify-content-center align-items-center min-vh-100">
-            {allUsers.length ? (
+            {filteredUsers.length ? (
+              filteredUsers.map((userState, index) => (
+                <div key={index} className="col-12 col-sm-6 col-lg-4 my-4 ">
+                  <div className="row justify-content-center align-items-center bg-black bg-gradient rounded-4 mx-2 my-1 p-4 ">
+                    <ul className="text-center fw-bold text-white">
+                      {userState.data.name}
+                    </ul>
+                    <ul className="text-center fw-bold text-white">
+                      {userState.email}
+                    </ul>
+                    <button
+                      className="btn btn-secondary fw-bold w-50 w-md-25"
+                      onClick={() =>
+                        navigate("/modifyUser", {
+                          state: userState,
+                        })
+                      }
+                    >
+                      Modificar
+                    </button>
+                  </div>
+                </div>
+              ))
+            ) : allUsers.length ? (
               allUsers.map((userState, index) => (
                 <div key={index} className="col-12 col-sm-6 col-lg-4 my-4 ">
                   <div className="row justify-content-center align-items-center bg-black bg-gradient rounded-4 mx-2 my-1 p-4 ">

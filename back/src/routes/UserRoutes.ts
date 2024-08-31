@@ -1,5 +1,5 @@
 import express, { Router, Request, Response, NextFunction } from "express";
-import { getAllUsers, updateUser, deleteUser } from "../dbFirebase/db";
+import { getAllUsers, createUser, deleteUser, updateUser } from "../dbFirebase/db";
 import dotenv from 'dotenv'
 import jwt, {JwtPayload as DefaultJwtPayload} from 'jsonwebtoken'
 
@@ -77,7 +77,7 @@ try{
 })
 
 
-router.post('/updateUser', async (req: Request, res: Response) => {
+router.post('/createUser', async (req: Request, res: Response) => {
 
   const { user } = req.session
 
@@ -93,9 +93,13 @@ router.post('/updateUser', async (req: Request, res: Response) => {
 
         try{
 
-          await updateUser(userData)
+          const responseDB = await createUser(userData)
 
-          res.status(200).send('User updated')
+          if(responseDB){
+
+            res.status(200).send('User created')
+          }
+
 
         }catch(error){
           console.error('Error at updateUser DB function')
@@ -118,18 +122,58 @@ router.post('/updateUser', async (req: Request, res: Response) => {
 
   })
 
-  router.delete("/deleteUser", async (req: Request, res: Response) => {
+  router.put('/updateUser', async (req: Request, res: Response) => {
 
-    const {user} = req.session
-
-    if(user){
-
-      const email = req.body.email
+    const { user } = req.session
   
+    if(user){
+  
+      try{
+    
+        const userData = req.body
+    
+        console.log(req.body, 'UPDATE USER REQ.BODY')
+    
+        if(userData){
+  
+          try{
+  
+           await updateUser(userData)
+
+             res.status(200).send('User updated')
+  
+          }catch(error){
+            console.error('Error at updateUser DB function')
+          }
+        }else{
+          res.status(400).send("Error at upload user!")
+        }
+        
+      }catch(error){
+    
+        console.error("User data not recieved")
+    
+        res.status(400).send("User data not recieved")
+    
+      }
+    }else{
+      res.status(401).send('Unauthorized for UserRoutes/updateUser')
+    }
+    
+  
+    })
+
+  router.delete("/deleteUser", async (req: Request, res: Response) => {
+    const {user} = req.session
+    
+    if(user){
+      
+          const {email} = req.body
+
        if(email){
          try{
   
-         await deleteUser(email)
+        await deleteUser(email)
   
          res.send('User deleted succesfully')
   
@@ -140,8 +184,8 @@ router.post('/updateUser', async (req: Request, res: Response) => {
          }
        }
     }else{
-      res.status(401).send("Unauthorized for userRoutes/deleteUser !")
-    }
+       res.status(401).send("Unauthorized for userRoutes/deleteUser !")
+     }
 
 
 

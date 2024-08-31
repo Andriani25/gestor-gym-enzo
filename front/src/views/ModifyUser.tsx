@@ -6,6 +6,7 @@ import axios from "axios";
 // CSS
 
 import "../styles/index.css";
+import { format } from "@formkit/tempo";
 
 // Types
 
@@ -31,7 +32,7 @@ const ModifyUser: FC = () => {
 
   const [expireDateState, setExpireDateState] = useState<Date>(new Date());
 
-  const [toggleAlert, setToggleAlert] = useState<boolean>(false);
+  const [toggleAlert, setToggleAlert] = useState<string>("");
 
   const [successMessage, setSuccessMessage] = useState<boolean>(false);
 
@@ -59,7 +60,7 @@ const ModifyUser: FC = () => {
   };
 
   const handleChangePayDate = (date: Date) => {
-    const newPayDate = dateFormatter(date);
+    const newPayDate = format(date, "DD/MM/YYYY", "es");
 
     setPayDateState(date);
 
@@ -70,13 +71,13 @@ const ModifyUser: FC = () => {
   };
 
   const handleChangeExpireDate = (date: Date) => {
-    const newExpireDate = dateFormatter(date);
+    const newExpireDate = format(date, "DD/MM/YYYY", "es");
 
     setExpireDateState(date);
 
     setInputValue({
       ...inputValue,
-      payDate: newExpireDate,
+      expireDate: newExpireDate,
     });
   };
 
@@ -87,14 +88,6 @@ const ModifyUser: FC = () => {
       });
       if (response.data === "gym_gestor") {
         console.log("Authorized");
-
-        const getResponse = await axios.get("http://localhost:3000/getUsers", {
-          withCredentials: true,
-        });
-
-        if (getResponse.data) {
-          return null;
-        }
       } else {
         navigate("/error");
       }
@@ -103,9 +96,9 @@ const ModifyUser: FC = () => {
     }
   };
 
-  const handleCreateUser = async () => {
+  const handleModifyUser = async () => {
     try {
-      const response = await axios.post(
+      const response = await axios.put(
         "http://localhost:3000/updateUser",
         inputValue,
         {
@@ -114,7 +107,7 @@ const ModifyUser: FC = () => {
       );
 
       if (response) {
-        setToggleAlert(true);
+        setToggleAlert("create");
         setSuccessMessage(true);
       } else {
         return console.error("Error at /updateUser");
@@ -124,8 +117,24 @@ const ModifyUser: FC = () => {
     }
   };
 
+  const handleDeleteUser = async (email: string) => {
+    try {
+      const response = await axios.delete("http://localhost:3000/deleteUser", {
+        data: { email },
+        withCredentials: true,
+      });
+
+      if (response) {
+        navigate("/admin");
+      } else {
+      }
+    } catch (error) {
+      console.error(error);
+    }
+  };
+
   const handleCloseAlert = () => {
-    setToggleAlert(false);
+    setToggleAlert("");
     navigate("/admin");
   };
 
@@ -135,7 +144,7 @@ const ModifyUser: FC = () => {
 
   return (
     <div className="container-fluid layout">
-      {toggleAlert ? (
+      {toggleAlert === "create" ? (
         <div className={"alert-overlay"}>
           <div className="container text-center">
             <div className="row justify-content-center align-items-center">
@@ -147,8 +156,8 @@ const ModifyUser: FC = () => {
                     } fw-bold fs-1 mb-4 `}
                   >
                     {successMessage
-                      ? "Usuario creado con éxito"
-                      : "Error al crear usuario"}
+                      ? "Usuario modificado con éxito"
+                      : "Error al modificar usuario"}
                   </span>
                 </div>
                 <div className="p-4">
@@ -163,14 +172,48 @@ const ModifyUser: FC = () => {
             </div>
           </div>
         </div>
+      ) : toggleAlert === "delete" ? (
+        <div className={"alert-overlay"}>
+          <div className="container text-center">
+            <div className="row justify-content-center align-items-center">
+              <div className="col-8 col-md-6 col-lg-4 bg-black bg-gradient rounded-4 ">
+                <div className="p-4">
+                  <span className="text-danger fw-bold fs-1 mb-4 ">
+                    {`¿Está seguro de eliminar a ${state.data.name}?`}
+                  </span>
+                </div>
+                <div className="row justify-content-around align-items-center p-4">
+                  <button
+                    onClick={() => setToggleAlert("")}
+                    className="btn btn-success text-white text-centered w-25 mt-4"
+                  >
+                    NO
+                  </button>
+                  <button
+                    onClick={() => handleDeleteUser(state.data.email)}
+                    className="btn btn-danger text-white text-centered w-25 mt-4"
+                  >
+                    SI
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
       ) : null}
       <div className="row justify-content-center align-items-center min-vh-100">
-        <div className="row">
+        <div className="row justify-content-around align-items-center">
           <button
             className="btn btn-secondary mx-3 w-25"
             onClick={() => navigate("/admin")}
           >
             Volver
+          </button>
+          <button
+            className="btn btn-danger w-25 h-25"
+            onClick={() => setToggleAlert("delete")}
+          >
+            Eliminar
           </button>
         </div>
         <div className="col-10 col-md-8 col-lg-6">
@@ -218,7 +261,10 @@ const ModifyUser: FC = () => {
                 onChange={handleChange}
               />
             </div>
-            <div className="row justify-content-center align-items-center">
+            <div className="row justify-content-center align-items-center text-center">
+              <span className="text-white fw-bold mb-2">
+                {state.data.payDate}
+              </span>
               <DatePicker
                 showIcon
                 placeholderText="Fecha de alta"
@@ -231,6 +277,9 @@ const ModifyUser: FC = () => {
                 className="mb-3 w-100 rounded-2"
                 withPortal
               />
+              <span className="text-white fw-bold mb-2">
+                {state.data.expireDate}
+              </span>
               <DatePicker
                 showIcon
                 placeholderText="Fecha de expiro"
@@ -246,13 +295,12 @@ const ModifyUser: FC = () => {
               />
               <button
                 disabled={
-                  dateFormatter(expireDateState) ===
-                  dateFormatter(payDateState || !inputValue.email.includes("@"))
+                  dateFormatter(expireDateState) === dateFormatter(payDateState)
                 }
                 className="btn w-50 btn-secondary text-centered fw-bold"
-                onClick={handleCreateUser}
+                onClick={handleModifyUser}
               >
-                Agregar Usuario
+                Modificar Usuario
               </button>
             </div>
           </div>

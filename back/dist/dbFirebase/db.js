@@ -4,7 +4,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.deleteUser = exports.updateUser = exports.getAllUsers = exports.getFirebaseApp = exports.initializeFirebaseApp = void 0;
+exports.deleteUser = exports.updateUser = exports.createUser = exports.getAllUsers = exports.getFirebaseApp = exports.initializeFirebaseApp = void 0;
 const app_1 = require("firebase/app");
 const dotenv_1 = __importDefault(require("dotenv"));
 const firestore_1 = require("firebase/firestore");
@@ -38,13 +38,11 @@ exports.getFirebaseApp = getFirebaseApp;
 const getAllUsers = async () => {
     try {
         const collectionData = await (0, firestore_1.getDocs)((0, firestore_1.collection)(firestoreDB, "Users"));
-        console.log(collectionData, 'COLLECTION DATA DE FIREBASEDB');
         let users = [];
         collectionData.forEach((doc) => {
             // doc.data() is never undefined for query doc snapshots
             users.push(doc.data());
         });
-        console.log(users, 'USERS DESPUES DEL COLECTIN DATA');
         return users;
     }
     catch (error) {
@@ -52,7 +50,7 @@ const getAllUsers = async () => {
     }
 };
 exports.getAllUsers = getAllUsers;
-const updateUser = async ({ name, payDate, cellPhone, expireDate, email }) => {
+const createUser = async ({ name, payDate, cellPhone, expireDate, email }) => {
     const userData = {
         email,
         data: {
@@ -66,11 +64,32 @@ const updateUser = async ({ name, payDate, cellPhone, expireDate, email }) => {
     console.log(userData, "USER DATA DB");
     try {
         const document = (0, firestore_1.doc)(firestoreDB, "Users", email);
-        let dataUpdated = await (0, firestore_1.setDoc)(document, userData);
-        return dataUpdated;
+        await (0, firestore_1.setDoc)(document, userData);
+        return true;
     }
     catch (error) {
         console.log("ERROR AT FILE UPLOAD", error);
+    }
+};
+exports.createUser = createUser;
+const updateUser = async ({ name, payDate, cellPhone, expireDate, email }) => {
+    if (email) {
+        try {
+            const userToModify = (0, firestore_1.doc)(firestoreDB, 'Users', email);
+            await (0, firestore_1.setDoc)(userToModify, {
+                email,
+                data: {
+                    name,
+                    payDate,
+                    cellPhone,
+                    expireDate,
+                    email
+                }
+            });
+        }
+        catch (error) {
+            console.error('Error at updateUser firebaseDB');
+        }
     }
 };
 exports.updateUser = updateUser;
